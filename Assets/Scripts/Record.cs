@@ -4,8 +4,8 @@ using System.Collections;
 
 public class Record : MonoBehaviour {
     public System.DateTime epoch;
-    public TextWriter acc;
-    public TextWriter gyro;
+    public StreamWriter acc;
+    public StreamWriter gyro;
     public MemoryStream fsAcc;
     public MemoryStream fsGyro;
     public string uploadURL;
@@ -31,6 +31,7 @@ public class Record : MonoBehaviour {
 
         debugText = GetComponent<TextMesh>();
         mainCamera = GameObject.Find("Main Camera");
+        this.transform.parent = mainCamera.transform;
     }
 
     public IEnumerator sendData(WWW sendTo) {
@@ -41,6 +42,8 @@ public class Record : MonoBehaviour {
 	void Update () {
         if (Input.GetButton("Tap") && !record) record = !record;
         else if(Input.GetButton("Back") && record) {
+            acc.WriteLine("{0},{1},{2},{3}", Input.acceleration.x, Input.acceleration.y, Input.acceleration.z, timeelapsed);
+            gyro.WriteLine("{0},{1},{2},{3}", mainCamera.transform.rotation.x, mainCamera.transform.rotation.y, mainCamera.transform.rotation.z, timeelapsed);
             curtime = (int)(System.DateTime.UtcNow - epoch).TotalSeconds;
 
             byte[] accBytes = fsAcc.ToArray();
@@ -59,6 +62,9 @@ public class Record : MonoBehaviour {
 
             record = !record;
             timeelapsed = 0;
+
+            acc.Flush();
+            gyro.Flush();
 
             fsAcc.SetLength(0);
             fsGyro.SetLength(0);

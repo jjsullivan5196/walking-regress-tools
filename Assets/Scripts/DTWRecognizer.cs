@@ -41,8 +41,6 @@ namespace Recognizer.DTW
 	
 		public DTWRecognizer(string data, int value_set)
 		{
-            DebugHandle = GameObject.Find("MRec");
-            DebugText = DebugHandle.GetComponent<TextMesh>();
             LoadTrainingData(data, value_set);
 		}
 
@@ -163,18 +161,16 @@ namespace Recognizer.DTW
         {
 
             ArrayList points = new ArrayList();
-
-            int schmeconds = 0;
+            
 
             foreach (string line in data)
             {
                 string[] csvData = line.Split(',');
                 PointR p = PointR.Empty;
-                p.X = schmeconds;
-                p.Y = Double.Parse(csvData[value_set]);
-                p.T = schmeconds;
+                p.X = Double.Parse(csvData[3]);
+                p.Y = Double.Parse(csvData[value_set]) * 100;
+                p.T = (int)Double.Parse(csvData[3]);
                 points.Add(p);
-                schmeconds++;
             }
 
             return new Gesture(points);
