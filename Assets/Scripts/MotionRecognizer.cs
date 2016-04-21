@@ -3,7 +3,6 @@ using System.Collections;
 using Recognizer.DTW;
 
 public class MotionRecognizer : MonoBehaviour {
-    public GameObject mainCamera;
     public TextMesh debug;
     public DTWRecognizer x_rec;
     public DTWRecognizer y_rec;
@@ -24,14 +23,25 @@ public class MotionRecognizer : MonoBehaviour {
     private float timeElapsed;
     static double max_thres = 0.0;
     public int steps = 0;
+
+    public GameObject debugHandle;
+    public GameObject movement;
     //private static string dataPath = "jar:file://" + Application.dataPath + "!/assets/";
+
+    public double thres;
+
+    public bool uplatch;
+    public bool downlatch;
 
     // Use this for initialization
     void Start () {
-        debug = GetComponent<TextMesh>();
+        debugHandle = GameObject.Find("Debug");
+        movement = GameObject.Find("Movement");
+        debug = debugHandle.GetComponent<TextMesh>();
         debug.text = "NOT DEFAULT";
-        mainCamera = GameObject.Find("Main Camera");
-        this.transform.parent = mainCamera.transform;
+
+        debugHandle.transform.parent = this.transform;
+
         x_rec = new DTWRecognizer(Training.daniel_walking_acc, DTWRecognizer.DATA_X_VALUES);
         y_rec = new DTWRecognizer(Training.daniel_walking_acc, DTWRecognizer.DATA_Y_VALUES);
         z_rec = new DTWRecognizer(Training.daniel_walking_acc, DTWRecognizer.DATA_Z_VALUES);
@@ -47,53 +57,51 @@ public class MotionRecognizer : MonoBehaviour {
         history = new ArrayList();
         timeElapsed = 0;
         debug.text = "1";
-	}
-    
+        thres = 0.76;
+
+        uplatch = downlatch = false;
+    }
+
+    private bool latched = false;
+
 	// Update is called once per frame
 	void Update () {
 
-        timeElapsed += Time.deltaTime;
+        timeElapsed += Time.deltaTime * 1000;
+        
 
-        //PROBLEM HERE, cast of int will always!!! be 0
-        x_input.Add(new PointR(timeElapsed, Input.acceleration.x * 100, (int)(timeElapsed * 1000)));
-        y_input.Add(new PointR(timeElapsed, Input.acceleration.y * 100, (int)(timeElapsed * 1000)));
-        z_input.Add(new PointR(timeElapsed, Input.acceleration.z * 100, (int)(timeElapsed * 1000)));
-
-        Rx_input.Add(new PointR(timeElapsed, mainCamera.transform.rotation.x * 100, (int)(timeElapsed * 1000)));
-        Ry_input.Add(new PointR(timeElapsed, mainCamera.transform.rotation.y * 100, (int)(timeElapsed * 1000)));
-        Rz_input.Add(new PointR(timeElapsed, mainCamera.transform.rotation.z * 100, (int)(timeElapsed * 1000)));
+        x_input.Add(new PointR(timeElapsed, Input.acceleration.x * 100, (int) timeElapsed ));
+        y_input.Add(new PointR(timeElapsed, Input.acceleration.y * 100, (int) timeElapsed ));
+        z_input.Add(new PointR(timeElapsed, Input.acceleration.z * 100, (int) timeElapsed ));
+    
+        Rx_input.Add(new PointR(timeElapsed, this.transform.rotation.x * 100, (int) timeElapsed));
+        Ry_input.Add(new PointR(timeElapsed, this.transform.rotation.y * 100, (int) timeElapsed));
+        Rz_input.Add(new PointR(timeElapsed, this.transform.rotation.z * 100, (int) timeElapsed));
 
         //debug.text = Time.deltaTime + "";
 
 
-        if (timeElapsed >= 0.573)
+        if (timeElapsed >= 573 || latched)
         {
+            if(!latched)
+                latched = true;
+            
             double res = 0;
-            res += y_rec.Recognize(y_input);
+            res += y_rec.Recognize(y_input) * .5;
+            res += z_rec.Recognize(z_input) * .5;
          
             history.Add(res);
-            // res += y_rec.Recognize(y_input);
-            // res += z_rec.Recognize(z_input) * .32;
-            // res += Rx_rec.Recognize(Rx_input) * .16;
-            // res += Ry_rec.Recognize(Ry_input) * .08;
-            // res += Rz_rec.Recognize(Rx_input) * .04;
 
             double dH = getAverage(history);
 
-
-
-
-
-            if (dH >= 0.70)
+            if (dH >= thres)
             {
                 steps++;
-                //GameObject.Find("Cube").transform.Translate(Vector3.Lerp(GameObject.Find("Cube").transform.position, Vector3.back * 4 * Time.deltaTime, 2));
-                mainCamera.transform.Translate(Vector3.Lerp(mainCamera.transform.position, Vector3.forward * 4 * Time.deltaTime, 2));
-
+                movement.transform.Translate(Vector3.Lerp(movement.transform.position, new Vector3(this.transform.forward.x,0, this.transform.forward.z) * 4 * Time.deltaTime, 2));
             }
+            
 
-
-            string result = string.Format("{0:0.0000}\nSTEPS:\n{1}", getAverage(history), steps);
+            string result = string.Format("{0:0.0000}\nThres:\n{1}", getAverage(history), thres);
             // string result = string.Format("X:{0:0.0000}\nY:{1:0.0000}\nZ:{2:0.0000}\nRX{3:0.0000}\nRY{4:0.0000}\nRZ{5:0.0000}",
             //    x_rec.Recognize(x_input), y_rec.Recognize(y_input), z_rec.Recognize(z_input), Rx_rec.Recognize(Rx_input),
             //    Ry_rec.Recognize(Ry_input), Rz_rec.Recognize(Rz_input));
@@ -109,6 +117,20 @@ public class MotionRecognizer : MonoBehaviour {
             {
                 history.RemoveAt(0);
             }
+
+            /*if(!uplatch && Input.GetButtonDown("Back"))
+            {
+                thres += 0.001;
+                uplatch = true;
+            }
+            if (uplatch && Input.GetButtonUp("Back")) uplatch = false;*/
+
+            if(!downlatch && Input.GetButtonDown("Tap"))
+            {
+                thres += 0.001;
+                downlatch = true;
+            }
+            if (downlatch && Input.GetButtonUp("Tap")) downlatch = false;
         }
 	}
 
