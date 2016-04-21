@@ -1,23 +1,31 @@
-setwd("C:/xampp/htdocs/upload/")
+setwd("C:/Users/John Sullivan/Documents/Git/walking-regress-tools/Assets/Resources/")
 source("funcs.R")
 
-byTime = FALSE
+byTime = TRUE
 
-acc = read.csv("acc1460650099.csv", header = FALSE, col.names = c("comx","comy","comz","time"))
-#gyro = read.csv("john-walking-gyro.csv", header = FALSE, col.names = c("comx","comy","comz","time"))
+acc = read.csv("john-walking-acc.csv", header = FALSE, col.names = c("comx","comy","comz","time"))
+gyro = read.csv("john-walking-gyro.csv", header = FALSE, col.names = c("comx","comy","comz","time"))
 
 #acc = zero_time(acc, 100)
 #gyro = zero_time(gyro, 100)
 
-par(mfrow = c(3, 1))
+par(mfcol = c(3, 2))
 
 if(!byTime) {
-  plot(acc$comx, type = "l", col = "red")
-  plot(acc$comy, type = "l", col = "green")
-  plot(acc$comz, type = "l", col = "blue")
+  plot(acc$comx, type = "l", col = "red", ylab = "X", xlab = "schmeconds", main = "Accelerometer Values")
+  plot(acc$comy, type = "l", col = "green", ylab = "Y", xlab = "schmeconds")
+  plot(acc$comz, type = "l", col = "blue", ylab = "Z", xlab = "schmeconds")
+  
+  plot(gyro$comx, type = "l", ylab = "X", xlab = "schmeconds", col = "red", main = "Gyroscope Values")
+  plot(gyro$comy, type = "l", ylab = "Y", xlab = "schmeconds", col = "green")
+  plot(gyro$comz, type = "l", ylab = "Z", xlab = "schmeconds", col = "blue")
 }
 if(byTime) {
-  plot(acc$time, acc$comx, type = "l", col = "red")
-  plot(acc$time, acc$comy, type = "l", col = "green")
-  plot(acc$time, acc$comz, type = "l", col = "blue")
+  plot(acc$time, acc$comx, type = "l", ylab = "X", xlab = "time", col = "red", main = "Accelerometer Values")
+  plot(acc$time, acc$comy, type = "l", ylab = "Y", xlab = "time", col = "green")
+  plot(acc$time, acc$comz, type = "l", ylab = "Z", xlab = "time", col = "blue")
+  
+  plot(gyro$time, gyro$comx, type = "l", ylab = "X", xlab = "time", col = "red", main = "Gyroscope Values")
+  plot(gyro$time, gyro$comy, type = "l", ylab = "Y", xlab = "time", col = "green")
+  plot(gyro$time, gyro$comz, type = "l", ylab = "Z", xlab = "time", col = "blue")
 }
