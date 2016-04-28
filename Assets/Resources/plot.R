@@ -10,8 +10,8 @@ gyro = read.csv("daniel-walking-gyro.csv", header = FALSE, col.names = c("comx",
 
 acc_smooth = data.frame(comx = predict(loess(comx ~ time, data = acc, span = smoothconstant)), comy = predict(loess(comy ~ time, data = acc, span = smoothconstant)), comz = predict(loess(comz ~ time, data = acc, span = smoothconstant)), time = acc$time)
 
-acc = zero_time(acc, 250, 284)
-gyro = zero_time(gyro, 250, 284)
+#acc = zero_time(acc, 250, 284)
+#gyro = zero_time(gyro, 250, 284)
 
 par(mfcol = c(3, 2))
 

@@ -1,11 +1,5 @@
 using System;
-using System.IO;
-using System.Xml;
-using System.Drawing;
 using System.Collections;
-using System.Diagnostics;
-using System.Reflection;
-using System.Text;
 using UnityEngine;
 
 namespace Recognizer.DTW
@@ -31,25 +25,64 @@ namespace Recognizer.DTW
         private int _sm = 0;
         private double[,] _dtw;
 
+        private bool derivative;
+
         public const int DATA_X_VALUES = 0;
         public const int DATA_Y_VALUES = 1;
         public const int DATA_Z_VALUES = 2;
+        public const int DATA_MAX_VALUES = 3;
+        public const bool RECOGNIZE_DTW = false;
+        public const bool RECOGNIZE_DDTW = true;
+        
 
 		#endregion
 
 		#region Constructor
 	
-		public DTWRecognizer(string data, int value_set)
+		public DTWRecognizer(string data, int value_set, bool derivative)
 		{
             LoadTrainingData(data, value_set);
+            this.derivative = derivative;
 		}
 
-		#endregion
+        #endregion
 
-		#region Recognition
+        #region Recognition
+
+        public ArrayList ddx_avg(ArrayList points)
+        {
+            ArrayList new_data = new ArrayList();
+
+            for (int i = 1; i < points.Count - 1; i++)
+            {
+
+                PointR left_point = ((PointR)points[i - 1]);
+                PointR main_point = ((PointR)points[i]);
+                PointR next_point = ((PointR)points[i + 1]);
+                PointR point = PointR.Empty;
+
+                point.Y = ddx(left_point.Y, main_point.Y, next_point.Y);
+                point.X = ddx(left_point.X, main_point.X, next_point.X);
+                point.T = (int)ddx(left_point.T, main_point.T, next_point.T);
+
+                new_data.Add(point);
+
+            }
+
+            return new_data;
+
+        }
+
+        public static double ddx(double l_point, double point, double r_point)
+        {
+            return ((point - l_point) + ((r_point - l_point) / 2)) / 2;
+        }
 
         public double Recognize(ArrayList points) // candidate points
         {
+            if(derivative)
+                points = ddx_avg(points);
+
             // rotate so that the centroid-to-1st-point is at zero degrees
             double radians = Utils.AngleInRadians(Utils.Centroid(points), (PointR) points[0], false); // indicative angle
             points = Utils.RotateByRadians(points, -radians); // undo angle
@@ -71,7 +104,8 @@ namespace Recognizer.DTW
                 return 1d - best[0] / HalfDiagonal;
                 
         }
-
+        
+                                                //input,      training
         private double DTWPathDistance(ArrayList pts1, ArrayList pts2) //DTW
         {
             int n = pts1.Count;
@@ -159,6 +193,7 @@ namespace Recognizer.DTW
         // assumes the reader has been just moved to the head of the content.
         private Gesture ReadTrainingData(string[] data, int value_set)
         {
+            
 
             ArrayList points = new ArrayList();
             
@@ -172,11 +207,16 @@ namespace Recognizer.DTW
                 p.T = (int)Double.Parse(csvData[3]);
                 points.Add(p);
             }
+            
+            if(derivative)
+                points = ddx_avg(points);
 
             return new Gesture(points);
         }
 
+      
+
         #endregion
-        
-	}
+
+    }
 }
