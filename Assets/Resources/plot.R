@@ -1,19 +1,23 @@
-setwd("C:/Users/gameprogrammer/Documents/walking-regress-tools/Assets/Resources")
+setwd("C:/Users/John Sullivan/Documents/Git/walking-regress-tools/Assets/Resources")
 source("funcs.R")
 
-smoothconstant = 0.003
+#smoothconstant = 0.002
 
 byTime = TRUE
 
-acc = read.csv("daniel-walking-acc.csv", header = FALSE, col.names = c("comx","comy","comz","time"))
-gyro = read.csv("daniel-walking-gyro.csv", header = FALSE, col.names = c("comx","comy","comz","time"))
+acc = read.csv("john-walking-acc.csv", header = FALSE, col.names = c("comx","comy","comz","time"))
+gyro = read.csv("john-walking-gyro.csv", header = FALSE, col.names = c("comx","comy","comz","time"))
 
-acc_smooth = data.frame(comx = predict(loess(comx ~ time, data = acc, span = smoothconstant)), comy = predict(loess(comy ~ time, data = acc, span = smoothconstant)), comz = predict(loess(comz ~ time, data = acc, span = smoothconstant)), time = acc$time)
+#acc_smooth = data.frame(comx = predict(loess(comx ~ time, data = acc, span = smoothconstant)), comy = predict(loess(comy ~ time, data = acc, span = smoothconstant)), comz = predict(loess(comz ~ time, data = acc, span = smoothconstant)), time = acc$time)
 
+#dan
 #acc = zero_time(acc, 250, 284)
 #gyro = zero_time(gyro, 250, 284)
 
-par(mfcol = c(3, 2))
+#john
+acc = zero_time(acc, 102, 138)
+gyro = zero_time(gyro, 102, 138)
+
 
 par(mfcol = c(3, 2))
 
@@ -36,5 +40,10 @@ if(byTime) {
   plot(gyro$time, gyro$comz, type = "l", col = "blue")
 }
 
-write.table(acc ,"daniel-single-step2-acc.csv", sep = ',', col.names = FALSE, row.names = FALSE)
-write.table(gyro ,"daniel-single-step2-gyro.csv", sep = ',', col.names = FALSE, row.names = FALSE)
+#dan
+#write.table(acc ,"daniel-single-step2-acc.csv", sep = ',', col.names = FALSE, row.names = FALSE)
+#write.table(gyro ,"daniel-single-step2-gyro.csv", sep = ',', col.names = FALSE, row.names = FALSE)
+
+#john
+write.table(acc ,"john-single-step2-acc.csv", sep = ',', col.names = FALSE, row.names = FALSE)
+write.table(gyro ,"john-single-step2-gyro.csv", sep = ',', col.names = FALSE, row.names = FALSE)
