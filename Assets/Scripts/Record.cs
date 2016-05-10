@@ -29,7 +29,7 @@ public class Record : MonoBehaviour {
         curtime = 0;
         uploadURL = "http://10.12.174.79/upload.php";
 
-        debugText = GetComponent<TextMesh>();
+        debugText = GameObject.Find("Debug").GetComponent<TextMesh>();
         mainCamera = GameObject.Find("Main Camera");
         this.transform.parent = mainCamera.transform;
     }
