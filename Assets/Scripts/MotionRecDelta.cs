@@ -87,17 +87,17 @@ public class MotionRecDelta : MonoBehaviour {
                 stop = true;
             }
 
-                if (start_detected)
-                {
-                    double score = yrec.Recognize(y_input, SeriesRecognizer.ACT_CONT);
+            if (start_detected)
+            {
+                double score = yrec.Recognize(y_input, SeriesRecognizer.ACT_CONT);
 
-                    if (score <= continue_threshold_upper && score >= continue_threshold_lower)
-                    {
-                        continue_detected = true;
-                        stop = false;
-                        debug.text = "Cont";
-                    }
+                if (score <= continue_threshold_upper && score >= continue_threshold_lower)
+                {
+                    continue_detected = true;
+                    stop = false;
+                    debug.text = "Cont";
                 }
+            }
             else
             {
                 debug.text = "Mid";
