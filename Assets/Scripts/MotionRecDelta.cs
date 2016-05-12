@@ -28,13 +28,19 @@ public class MotionRecDelta : MonoBehaviour {
         timeElapsed = 0;
 	}
 
-    int num_input_points = 3;
-    double rise_threshold = 1;
-    double continue_threshold = 1;
-    double fall_threshold = 1;
-    double stop_threshold = 0.5;
+
+    // it was 3 for num inputs
+    int num_input_points = 5;
+    double rise_threshold_lower = 0.8;
+    double rise_threshold_upper = 1;
+    double continue_threshold_lower = 0.75;
+    double continue_threshold_upper = 1;
+    double fall_threshold_lower = 0.65;
+    double fall_threshold_upper = 1;
+    double stop_threshold = 2.5;
     bool start_detected = false;
     bool continue_detected = false;
+    bool stop = false;
     
 
 	// Update is called once per frame
@@ -59,30 +65,73 @@ public class MotionRecDelta : MonoBehaviour {
             
 #endif
 
-            if (yrec.Recognize(y_input, SeriesRecognizer.ACT_STOP) >= stop_threshold)
-            {
+            // if (yrec.Recognize(y_input, SeriesRecognizer.ACT_STOP) >= stop_threshold)
+            // {
 
-                if (!continue_detected && yrec.Recognize(y_input, SeriesRecognizer.ACT_RISE) <= rise_threshold)
+
+
+            if (!continue_detected)
+            {
+                double score = yrec.Recognize(y_input, SeriesRecognizer.ACT_RISE);
+
+                if (score <= rise_threshold_upper && score >= rise_threshold_lower)
                 {
                     start_detected = true;
+                    stop = false;
                     debug.text = "Start";
                 }
-                if (start_detected && yrec.Recognize(y_input, SeriesRecognizer.ACT_CONT) <= continue_threshold)
-                {
-                    continue_detected = true;
-                    debug.text = "Cont";
-                }
-                if (continue_detected && yrec.Recognize(y_input, SeriesRecognizer.ACT_FALL) <= fall_threshold)
-                {
-                    debug.text = "Fall";
-                    continue_detected = start_detected = false;
-                }
-
             }
             else
             {
-                debug.text = "Stop";
+                debug.text = "Mid";
+                stop = true;
             }
+
+                if (start_detected)
+                {
+                    double score = yrec.Recognize(y_input, SeriesRecognizer.ACT_CONT);
+
+                    if (score <= continue_threshold_upper && score >= continue_threshold_lower)
+                    {
+                        continue_detected = true;
+                        stop = false;
+                        debug.text = "Cont";
+                    }
+                }
+            else
+            {
+                debug.text = "Mid";
+                stop = true;
+            }
+
+            if (continue_detected)
+                {
+                    double score = yrec.Recognize(y_input, SeriesRecognizer.ACT_FALL);
+
+                    if (score <= fall_threshold_upper && score >= fall_threshold_lower)
+                    {
+                        debug.text = "Fall";
+                        continue_detected = start_detected = false;
+                    }
+                }
+            else
+            {
+                debug.text = "Mid";
+                stop = true;
+            }
+
+
+            if ((start_detected || continue_detected) && !stop)
+            {
+                Vector3 forward = new Vector3(this.transform.forward.x, 0, this.transform.forward.z) * 10;
+                move.transform.position = Vector3.Lerp(move.transform.position, move.transform.position + forward, 0.5f);
+            }
+
+            //  }
+            //  else
+            //  {
+            //      debug.text = "Stop";
+            //  }
 
             y_input.RemoveAt(0);
 
