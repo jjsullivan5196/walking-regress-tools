@@ -40,7 +40,12 @@ public class MotionRecDelta : MonoBehaviour {
     double stop_threshold = 2.5;
     bool start_detected = false;
     bool continue_detected = false;
+    bool fall_detected = false;
     bool stop = false;
+
+    bool last_start = false;
+    bool last_continue = false;
+    bool last_fall = false;
     
 
 	// Update is called once per frame
@@ -64,76 +69,44 @@ public class MotionRecDelta : MonoBehaviour {
 
             
 #endif
+            double rise = yrec.Recognize(y_input, SeriesRecognizer.ACT_RISE);
+            double cont = yrec.Recognize(y_input, SeriesRecognizer.ACT_CONT);
+            double fall = yrec.Recognize(y_input, SeriesRecognizer.ACT_FALL);
 
-            // if (yrec.Recognize(y_input, SeriesRecognizer.ACT_STOP) >= stop_threshold)
-            // {
+            start_detected = rise <= rise_threshold_upper && rise >= rise_threshold_lower;
+            continue_detected = cont <= continue_threshold_upper && cont >= continue_threshold_lower;
+            fall_detected = fall <= fall_threshold_upper && cont >= fall_threshold_lower;
+            Vector3 forward = new Vector3(this.transform.forward.x, 0, this.transform.forward.z) * 1;
 
 
-
-            if (!continue_detected)
-            {
-                double score = yrec.Recognize(y_input, SeriesRecognizer.ACT_RISE);
-
-                if (score <= rise_threshold_upper && score >= rise_threshold_lower)
+            
+                if (start_detected)
                 {
-                    start_detected = true;
-                    stop = false;
-                    debug.text = "Start";
+                    move.transform.position = Vector3.Lerp(move.transform.position, move.transform.position + forward, 0.2f);
+                    last_start = true;
+                    last_continue = false;
                 }
-            }
-            else
-            {
-                debug.text = "Mid";
-                stop = true;
-            }
 
-            if (start_detected)
-            {
-                double score = yrec.Recognize(y_input, SeriesRecognizer.ACT_CONT);
-
-                if (score <= continue_threshold_upper && score >= continue_threshold_lower)
+                else if (continue_detected && last_start)
                 {
-                    continue_detected = true;
-                    stop = false;
-                    debug.text = "Cont";
+                    move.transform.position = Vector3.Lerp(move.transform.position, move.transform.position + forward, 0.2f);
+                    last_continue = true;
                 }
-            }
-            else
-            {
-                debug.text = "Mid";
-                stop = true;
-            }
 
-            if (continue_detected)
+                else if (fall_detected && last_continue)
                 {
-                    double score = yrec.Recognize(y_input, SeriesRecognizer.ACT_FALL);
-
-                    if (score <= fall_threshold_upper && score >= fall_threshold_lower)
-                    {
-                        debug.text = "Fall";
-                        continue_detected = start_detected = false;
-                    }
+                    move.transform.position = Vector3.Lerp(move.transform.position, move.transform.position + forward, 0.2f);
+                    last_fall = true;
+                    last_start = false;
                 }
-            else
-            {
-                debug.text = "Mid";
-                stop = true;
-            }
 
 
-            if ((start_detected || continue_detected) && !stop)
-            {
-                Vector3 forward = new Vector3(this.transform.forward.x, 0, this.transform.forward.z) * 10;
-                move.transform.position = Vector3.Lerp(move.transform.position, move.transform.position + forward, 0.5f);
-            }
+                if ((start_detected && continue_detected) || (start_detected && fall_detected) || (continue_detected && fall_detected) || (start_detected && continue_detected && fall_detected))
+                {
+                    last_start = last_continue = last_fall = false;
+                }
 
-            //  }
-            //  else
-            //  {
-            //      debug.text = "Stop";
-            //  }
-
-            y_input.RemoveAt(0);
+                y_input.RemoveAt(0);
 
         }
 

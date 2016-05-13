@@ -57,7 +57,7 @@ public class MotionRecognizer : MonoBehaviour {
         history = new ArrayList();
         timeElapsed = 0;
         debug.text = "1";
-        thres = 0.766;
+        thres = 0.500;
 
         downlatch = false;
     }
@@ -98,18 +98,13 @@ public class MotionRecognizer : MonoBehaviour {
             double dH = getAverage(history);
 
 
-            if (dH >= thres && Input.acceleration.y >= -0.95)// && Input.acceleration.x >= 0.5) 
+            if (dH >= thres)// && Input.acceleration.x >= 0.5)  && Input.acceleration.y >= -0.95
             {
                 move = new Vector3(this.transform.forward.x, 0, this.transform.forward.z);
-                animate = 30;
+                movement.transform.position = Vector3.Lerp(movement.transform.position, movement.transform.position + move, 15);
+            
             }
 
-            //(new Vector3(this.transform.forward.x, 0, this.transform.forward.z) * 3 * Time.deltaTime)
-            if (animate > 0)
-            {
-                animate--;
-                movement.transform.position = Vector3.Lerp(movement.transform.position, movement.transform.position + move, 0.02f);
-            }
 
             string result = string.Format("{0:0.0000}\nN/A:\n{1}", dH, 0);
             // string result = string.Format("X:{0:0.0000}\nY:{1:0.0000}\nZ:{2:0.0000}\nRX{3:0.0000}\nRY{4:0.0000}\nRZ{5:0.0000}",
